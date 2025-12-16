@@ -35,6 +35,16 @@ A comprehensive, production-ready management system for gated communities built 
 - **Role-based Access Control**: Admin, Security Guard, and Resident roles
 - **Dashboard Analytics**: Statistics and recent activity tracking
 
+### 🔐 Security Features
+- **Two-Factor Authentication (2FA)**: TOTP-based 2FA with QR code setup
+- **JWT with Refresh Tokens**: Secure token rotation with 15-min access tokens and 7-day refresh tokens
+- **Rate Limiting**: Protection against brute-force attacks on login and password reset
+- **Strong Password Validation**: Minimum 8 characters with complexity requirements and strength indicator
+- **Security PIN**: 6-digit PIN for password recovery verification
+- **Audit Logging**: Comprehensive logging of all security-sensitive actions
+- **Account Lockout**: Automatic lockout after multiple failed login attempts
+- **First-Time Password Setup**: Forced password change on first login
+
 ### Technical Highlights
 - Clean architecture with separation of concerns
 - Type-safe codebase with TypeScript
@@ -58,7 +68,11 @@ A comprehensive, production-ready management system for gated communities built 
 - **TypeScript** - Type safety
 - **MySQL2** - Database driver with pooling
 - **Socket.IO** - WebSocket server
+- **JWT** - JSON Web Tokens for authentication
 - **bcrypt** - Password hashing
+- **speakeasy** - TOTP-based 2FA
+- **qrcode** - QR code generation for 2FA setup
+- **express-rate-limit** - Rate limiting middleware
 - **express-validator** - Input validation
 
 ### Database
@@ -139,6 +153,9 @@ mysql -u root -p
 
 # Run the schema file
 source database/schema.sql
+
+# Run the security features migration
+source database/migration-security-features.sql
 ```
 
 ### 3. Backend Setup
@@ -207,8 +224,18 @@ ng build --configuration production
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/auth/login` | User login |
+| POST | `/api/auth/refresh` | Refresh access token |
+| POST | `/api/auth/logout` | Logout (revoke refresh token) |
+| POST | `/api/auth/logout-all` | Logout from all devices |
 | GET | `/api/auth/me` | Get current user |
 | GET | `/api/auth/residents` | Get all residents (for Security) |
+| POST | `/api/auth/setup-password` | First-time password setup with PIN |
+| POST | `/api/auth/change-password` | Change password |
+| GET | `/api/auth/can-change-password` | Check password change eligibility |
+| POST | `/api/auth/enable-2fa` | Enable 2FA (returns QR code) |
+| POST | `/api/auth/verify-2fa` | Verify 2FA code during login |
+| POST | `/api/auth/disable-2fa` | Disable 2FA |
+| GET | `/api/auth/2fa-status` | Get 2FA status |
 
 ### Visitors
 | Method | Endpoint | Description |
@@ -321,9 +348,14 @@ visitor-parcel-management/
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@vpm.com | admin123 |
-| Security | guard1@vpm.com | guard123 |
-| Resident | resident1@vpm.com | resident123 |
+| Admin | admin@vpm.com | password123 |
+| Security | guard1@vpm.com | password123 |
+| Security | guard2@vpm.com | password123 |
+| Resident | karthik@vpm.com | password123 |
+| Resident | pradha@vpm.com | password123 |
+| Resident | roshini@vpm.com | password123 |
+
+> **Note**: On first login, users are required to set up a new password and a 6-digit security PIN.
 
 ## 📝 License
 
