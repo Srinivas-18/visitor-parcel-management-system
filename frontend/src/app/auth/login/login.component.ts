@@ -3,7 +3,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService, NotificationService } from '@core/services';
+import { User } from '@core/models';
 import { PasswordSetupDialogComponent } from '../password-setup-dialog/password-setup-dialog.component';
+import { TwoFactorDialogComponent } from '../two-factor-dialog/two-factor-dialog.component';
 
 @Component({
   selector: 'app-login',
@@ -51,13 +53,47 @@ export class LoginComponent implements OnInit {
     const { email, password } = this.loginForm.value;
 
     this.authService.login({ email, password }).subscribe({
-      next: (user) => {
-        this.notification.success(`Welcome, ${user.name}!`);
-        this.checkPasswordSetup();
+      next: (result) => {
+        // Check if 2FA is required
+        if (result && typeof result === 'object' && 'requires2FA' in result && result.requires2FA) {
+          this.isLoading = false;
+          this.show2FADialog();
+        } else {
+          // Normal login successful
+          const user = result as User;
+          this.notification.success(`Welcome, ${user.name}!`);
+          this.checkPasswordSetup();
+        }
       },
       error: (error) => {
         this.isLoading = false;
-        this.notification.error(error.error?.message || error.message || 'Login failed. Please check your credentials.');
+        const errorMessage = error.error?.message || error.message || 'Login failed. Please check your credentials.';
+        
+        // Check for specific error types
+        if (errorMessage.includes('locked')) {
+          this.notification.error('Account is locked due to too many failed attempts. Please try again later.');
+        } else if (errorMessage.includes('rate limit') || error.status === 429) {
+          this.notification.error('Too many login attempts. Please wait a few minutes before trying again.');
+        } else {
+          this.notification.error(errorMessage);
+        }
+      }
+    });
+  }
+
+  private show2FADialog(): void {
+    const dialogRef = this.dialog.open(TwoFactorDialogComponent, {
+      width: '450px',
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // 2FA verification successful
+        this.checkPasswordSetup();
+      } else {
+        // 2FA cancelled
+        this.notification.info('Login cancelled.');
       }
     });
   }
@@ -66,8 +102,8 @@ export class LoginComponent implements OnInit {
     const user = this.authService.currentUser;
     if (!user) return;
 
-    // Check if user needs to set up password
-    if (user.mustChangePassword) {
+    // Check if user needs to set up password (handle both camelCase and snake_case)
+    if (user.mustChangePassword || user.must_change_password) {
       this.showPasswordSetupDialog();
     } else {
       this.redirectBasedOnRole();

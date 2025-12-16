@@ -53,8 +53,14 @@ class Database {
   async close(): Promise<void> {
     await this.pool.end();
   }
+
+  // Get the raw pool for direct access
+  getPool(): Pool {
+    return this.pool;
+  }
 }
 
 // Singleton instance
 export const db = new Database();
+export const pool = db.getPool();
 export default db;

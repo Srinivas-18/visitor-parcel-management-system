@@ -6,6 +6,7 @@ import { User, UserRole } from '@core/models';
 import { AuthService, SocketService, NotificationService } from '@core/services';
 import { ChangePasswordDialogComponent } from './auth/change-password-dialog/change-password-dialog.component';
 import { PasswordSetupDialogComponent } from './auth/password-setup-dialog/password-setup-dialog.component';
+import { TwoFactorSettingsDialogComponent } from './auth/two-factor-settings-dialog/two-factor-settings-dialog.component';
 
 interface NavItem {
   label: string;
@@ -89,8 +90,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   openChangePasswordDialog(): void {
-    // Check if user needs to setup password first (has mustChangePassword flag)
-    if (this.currentUser?.mustChangePassword) {
+    // Check if user needs to setup password first (handle both camelCase and snake_case)
+    if (this.currentUser?.mustChangePassword || this.currentUser?.must_change_password) {
       const dialogRef = this.dialog.open(PasswordSetupDialogComponent, {
         width: '500px',
         disableClose: true
@@ -112,6 +113,24 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  open2FASettingsDialog(): void {
+    this.dialog.open(TwoFactorSettingsDialogComponent, {
+      width: '500px'
+    });
+  }
+
+  logoutAllSessions(): void {
+    this.authService.logoutAll().subscribe({
+      next: () => {
+        this.notification.success('Logged out from all sessions');
+        this.router.navigate(['/login']);
+      },
+      error: (error) => {
+        this.notification.error(error.message || 'Failed to logout from all sessions');
+      }
+    });
   }
 
   private updatePageTitle(): void {

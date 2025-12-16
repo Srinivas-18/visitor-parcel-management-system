@@ -66,6 +66,15 @@
               <mat-icon>lock</mat-icon>
               <span>Change Password</span>
             </button>
+            <button mat-menu-item (click)="open2FASettingsDialog()">
+              <mat-icon>security</mat-icon>
+              <span>Two-Factor Auth</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="logoutAllSessions()">
+              <mat-icon>devices</mat-icon>
+              <span>Logout All Sessions</span>
+            </button>
             <button mat-menu-item (click)="logout()">
               <mat-icon>logout</mat-icon>
               <span>Logout</span>

@@ -3,8 +3,9 @@ import cors from 'cors';
 import { createServer, Server as HTTPServer } from 'http';
 import config from './config';
 import routes from './routes';
-import { errorHandler, notFoundHandler } from './middlewares';
+import { errorHandler, notFoundHandler, generalLimiter } from './middlewares';
 import { initializeSocket } from './socket';
+import { EmailService } from './services';
 
 // Create Express app
 const app: Application = express();
@@ -14,6 +15,9 @@ const httpServer: HTTPServer = createServer(app);
 
 // Initialize Socket.IO
 initializeSocket(httpServer);
+
+// Initialize Email Service
+EmailService.initialize().catch(console.error);
 
 // =====================================================
 // Middleware
@@ -30,6 +34,9 @@ app.use(cors({
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// General rate limiting (100 requests per 15 minutes)
+app.use('/api', generalLimiter);
 
 // Request logging (development)
 if (config.nodeEnv === 'development') {

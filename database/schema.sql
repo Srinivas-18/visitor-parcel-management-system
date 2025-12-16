@@ -47,8 +47,8 @@ CREATE TABLE records (
 -- =====================================================
 INSERT INTO users (name, email, password, role, contact_info) VALUES
 ('Admin User', 'admin@vpm.com', '$2b$10$nnhGq5rHqifDedhir0tK4.wdeLSW0VrhNuFqUlRfH.WXvqUG8DAkG', 'ADMIN', '9999999999'),
-('John Resident', 'john@vpm.com', '$2b$10$nnhGq5rHqifDedhir0tK4.wdeLSW0VrhNuFqUlRfH.WXvqUG8DAkG', 'RESIDENT', '9876543210'),
-('Jane Resident', 'jane@vpm.com', '$2b$10$nnhGq5rHqifDedhir0tK4.wdeLSW0VrhNuFqUlRfH.WXvqUG8DAkG', 'RESIDENT', '9876543211'),
-('Mike Resident', 'mike@vpm.com', '$2b$10$nnhGq5rHqifDedhir0tK4.wdeLSW0VrhNuFqUlRfH.WXvqUG8DAkG', 'RESIDENT', '9876543212'),
+('Karthik', 'karthik@vpm.com', '$2b$10$nnhGq5rHqifDedhir0tK4.wdeLSW0VrhNuFqUlRfH.WXvqUG8DAkG', 'RESIDENT', '9876543210'),
+('Pradha', 'pradha@vpm.com', '$2b$10$nnhGq5rHqifDedhir0tK4.wdeLSW0VrhNuFqUlRfH.WXvqUG8DAkG', 'RESIDENT', '9876543211'),
+('Roshini', 'roshini@vpm.com', '$2b$10$nnhGq5rHqifDedhir0tK4.wdeLSW0VrhNuFqUlRfH.WXvqUG8DAkG', 'RESIDENT', '9876543212'),
 ('Guard One', 'guard1@vpm.com', '$2b$10$nnhGq5rHqifDedhir0tK4.wdeLSW0VrhNuFqUlRfH.WXvqUG8DAkG', 'SECURITY', '9123456789'),
 ('Guard Two', 'guard2@vpm.com', '$2b$10$nnhGq5rHqifDedhir0tK4.wdeLSW0VrhNuFqUlRfH.WXvqUG8DAkG', 'SECURITY', '9123456780');

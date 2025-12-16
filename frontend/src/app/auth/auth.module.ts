@@ -5,6 +5,8 @@ import { SharedModule } from '../shared/shared.module';
 import { LoginComponent } from './login/login.component';
 import { PasswordSetupDialogComponent } from './password-setup-dialog/password-setup-dialog.component';
 import { ChangePasswordDialogComponent } from './change-password-dialog/change-password-dialog.component';
+import { TwoFactorDialogComponent } from './two-factor-dialog/two-factor-dialog.component';
+import { TwoFactorSettingsDialogComponent } from './two-factor-settings-dialog/two-factor-settings-dialog.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -15,7 +17,9 @@ const routes: Routes = [
   declarations: [
     LoginComponent,
     PasswordSetupDialogComponent,
-    ChangePasswordDialogComponent
+    ChangePasswordDialogComponent,
+    TwoFactorDialogComponent,
+    TwoFactorSettingsDialogComponent
   ],
   imports: [
     SharedModule,
@@ -23,7 +27,9 @@ const routes: Routes = [
   ],
   exports: [
     PasswordSetupDialogComponent,
-    ChangePasswordDialogComponent
+    ChangePasswordDialogComponent,
+    TwoFactorDialogComponent,
+    TwoFactorSettingsDialogComponent
   ]
 })
 export class AuthModule { }

@@ -210,7 +210,7 @@ export class UserModel {
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
     
     await db.execute(
-      'UPDATE users SET password = ?, password_changed_count = password_changed_count + 1 WHERE id = ?',
+      'UPDATE users SET password = ?, must_change_password = FALSE, password_changed_count = password_changed_count + 1 WHERE id = ?',
       [hashedPassword, id]
     );
   }
@@ -221,9 +221,17 @@ export class UserModel {
     if (user.role === 'ADMIN') {
       return { canChange: true };
     }
+
+    // If user hasn't completed initial setup (must_change_password is TRUE), they must setup with PIN first
+    if (user.must_change_password) {
+      return {
+        canChange: false,
+        reason: 'Please complete the initial password setup with security PIN first.'
+      };
+    }
     
     // Residents and Security can only change once (after initial setup)
-    if (user.password_changed_count >= 1 && !user.must_change_password) {
+    if (user.password_changed_count >= 1) {
       return { 
         canChange: false, 
         reason: 'You have already changed your password once. Please contact the administrator to reset your password.' 

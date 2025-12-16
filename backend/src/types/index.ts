@@ -31,6 +31,12 @@ export interface User {
   role: UserRole;
   contact_info: string | null;
   is_active: boolean;
+  two_factor_enabled?: boolean; // 2FA enabled flag
+  two_factor_secret?: string; // TOTP secret
+  email_verified?: boolean;
+  last_login?: Date | null;
+  failed_login_attempts?: number;
+  locked_until?: Date | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -47,6 +53,7 @@ export interface Record {
   status: RecordStatus;
   created_at: Date;
 }
+
 
 // =====================================================
 // API Request/Response Types
@@ -219,4 +226,65 @@ export interface PaginatedResponse<T> {
     total: number;
     totalPages: number;
   };
+}
+
+// =====================================================
+// Security & 2FA Types
+// =====================================================
+
+// Login with optional 2FA
+export interface LoginRequestWith2FA extends LoginRequest {
+  twoFactorCode?: string;
+}
+
+// Login response with tokens
+export interface LoginResponseWithTokens {
+  success: boolean;
+  message: string;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresIn?: number;
+  user?: Omit<User, 'password' | 'security_pin' | 'two_factor_secret'>;
+  mustChangePassword?: boolean;
+  requires2FA?: boolean;
+  tempToken?: string; // Temporary token for 2FA verification
+}
+
+// Refresh token request
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+// 2FA Setup response
+export interface TwoFactorSetupResponse {
+  secret: string;
+  qrCode: string;
+  otpAuthUrl: string;
+}
+
+// 2FA Verify request
+export interface TwoFactorVerifyRequest {
+  code: string;
+}
+
+// OTP Request
+export interface OTPRequest {
+  email: string;
+  type: 'LOGIN' | 'PASSWORD_RESET';
+}
+
+// OTP Verify request
+export interface OTPVerifyRequest {
+  email: string;
+  code: string;
+  type: 'LOGIN' | 'PASSWORD_RESET';
+}
+
+// Password validation result
+export interface PasswordValidationResponse {
+  isValid: boolean;
+  score: number;
+  strengthLabel: string;
+  errors: string[];
+  suggestions: string[];
 }

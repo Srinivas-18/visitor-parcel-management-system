@@ -58,7 +58,9 @@ export class ChangePasswordDialogComponent implements OnInit {
   }
 
   get passwordsMatch(): boolean {
-    return this.form.get('newPassword')?.value === this.form.get('confirmPassword')?.value;
+    const newPassword = this.form.get('newPassword')?.value;
+    const confirmPassword = this.form.get('confirmPassword')?.value;
+    return newPassword && confirmPassword && newPassword === confirmPassword;
   }
 
   onSubmit(): void {
