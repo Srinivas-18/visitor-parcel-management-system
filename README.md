@@ -1,7 +1,12 @@
 # Visitor & Parcel Management System
 
+> ⚠️ **Status: Under Development / Testing**
+> 
+> This project is currently under active development and testing. Features may be incomplete or subject to change.
+
 A comprehensive, production-ready management system for gated communities built with **Angular 16**, **Node.js + Express + TypeScript**, and **MySQL**.
 
+![Status](https://img.shields.io/badge/Status-Under%20Development-yellow.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Angular](https://img.shields.io/badge/Angular-16.2.0-red.svg)
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)
@@ -331,12 +336,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-## 👤 Author
-
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
 
 ---
 
