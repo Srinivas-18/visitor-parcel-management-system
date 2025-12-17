@@ -96,54 +96,152 @@ A comprehensive, production-ready management system for gated communities built 
 
 ## 💾 Database Design
 
-The system uses a **minimal 2-table design** for simplicity and flexibility:
+The system uses **6 tables** for comprehensive visitor/parcel management with security features:
 
-### Users Table
+### Core Tables
+
+#### 1. Users Table
+Stores all system users (Admins, Security Guards, Residents)
 ```sql
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('ADMIN', 'SECURITY', 'RESIDENT') NOT NULL,
-    contact_info VARCHAR(20),
-    flat_number VARCHAR(20),
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,              -- bcrypt hashed
+    security_pin VARCHAR(255) DEFAULT NULL,      -- 6-digit PIN for password reset
+    password_changed_count INT DEFAULT 0,        -- Track password changes
+    must_change_password BOOLEAN DEFAULT TRUE,   -- Force password change on first login
+    role ENUM('RESIDENT', 'SECURITY', 'ADMIN') NOT NULL,
+    contact_info VARCHAR(100),
     is_active BOOLEAN DEFAULT TRUE,
+    two_factor_enabled BOOLEAN DEFAULT FALSE,    -- 2FA status
+    two_factor_secret VARCHAR(255) NULL,         -- TOTP secret key
+    failed_login_attempts INT DEFAULT 0,         -- For account lockout
+    locked_until TIMESTAMP NULL,                 -- Account lockout timestamp
+    last_login TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 ```
 
-### Records Table
+#### 2. Records Table
+Stores both visitor and parcel entries
 ```sql
 CREATE TABLE records (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    resident_id INT NOT NULL,
-    security_guard_id INT,
-    type ENUM('VISITOR', 'PARCEL') NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    purpose_or_description TEXT,
-    media_url VARCHAR(500),
-    vehicle_details VARCHAR(100),
-    status VARCHAR(50) NOT NULL,
+    resident_id INT NOT NULL,                    -- Which resident this is for
+    security_guard_id INT NOT NULL,              -- Which guard logged this
+    type ENUM('VISITOR', 'PARCEL') NOT NULL,     -- Entry type
+    name VARCHAR(100) NOT NULL,                  -- Visitor name or parcel sender
+    purpose_or_description VARCHAR(500) NOT NULL,
+    media_url VARCHAR(500),                      -- Photo URL (optional)
+    vehicle_details VARCHAR(100),                -- Vehicle info (optional)
+    status VARCHAR(20) NOT NULL,                 -- Current status
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
     FOREIGN KEY (resident_id) REFERENCES users(id),
     FOREIGN KEY (security_guard_id) REFERENCES users(id)
 );
 ```
 
+### Security Tables
+
+#### 3. Refresh Tokens Table
+Stores JWT refresh tokens for secure token rotation
+```sql
+CREATE TABLE refresh_tokens (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    token VARCHAR(500) NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    revoked BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+#### 4. Audit Logs Table
+Tracks all security-sensitive actions
+```sql
+CREATE TABLE audit_logs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NULL,
+    action VARCHAR(100) NOT NULL,        -- e.g., 'LOGIN', 'PASSWORD_CHANGE'
+    entity_type VARCHAR(50) NOT NULL,    -- e.g., 'USER', 'VISITOR'
+    entity_id INT NULL,
+    details JSON NULL,                   -- Additional context
+    ip_address VARCHAR(45) NULL,
+    status ENUM('SUCCESS', 'FAILURE') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### 5. OTP Codes Table
+Stores one-time passwords for 2FA
+```sql
+CREATE TABLE otp_codes (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    type ENUM('LOGIN', 'PASSWORD_RESET', 'EMAIL_VERIFY') NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+#### 6. Login Attempts Table
+Tracks login attempts for rate limiting
+```sql
+CREATE TABLE login_attempts (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(100) NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    success BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Database Schema Diagram
+```
+┌─────────────────┐       ┌─────────────────┐
+│     users       │       │    records      │
+├─────────────────┤       ├─────────────────┤
+│ id (PK)         │──┐    │ id (PK)         │
+│ name            │  │    │ resident_id (FK)│──┐
+│ email           │  │    │ security_id (FK)│──┤
+│ password        │  │    │ type            │  │
+│ security_pin    │  │    │ name            │  │
+│ role            │  │    │ purpose         │  │
+│ two_factor_*    │  │    │ status          │  │
+│ ...             │  │    │ created_at      │  │
+└─────────────────┘  │    └─────────────────┘  │
+         ▲           │                         │
+         │           └─────────────────────────┘
+         │
+┌────────┴────────┐   ┌─────────────────┐   ┌─────────────────┐
+│ refresh_tokens  │   │   audit_logs    │   │  login_attempts │
+├─────────────────┤   ├─────────────────┤   ├─────────────────┤
+│ id (PK)         │   │ id (PK)         │   │ id (PK)         │
+│ user_id (FK)    │   │ user_id (FK)    │   │ email           │
+│ token           │   │ action          │   │ ip_address      │
+│ expires_at      │   │ entity_type     │   │ success         │
+│ revoked         │   │ details (JSON)  │   │ created_at      │
+└─────────────────┘   └─────────────────┘   └─────────────────┘
+```
+
 ## 🚀 Installation
 
 ### Prerequisites
-- Node.js 18+
-- MySQL 8.0+
-- npm or yarn
+- **Node.js 18+** - Download from https://nodejs.org
+- **MySQL 8.0+** - Download from https://dev.mysql.com/downloads/mysql/
+- **Git** - Download from https://git-scm.com
+- **Angular CLI** - Install via `npm install -g @angular/cli`
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/visitor-parcel-management.git
-cd visitor-parcel-management
+git clone https://github.com/Srinivas-18/visitor-parcel-management-system.git
+cd visitor-parcel-management-system
 ```
 
 ### 2. Database Setup
@@ -151,56 +249,81 @@ cd visitor-parcel-management
 # Login to MySQL
 mysql -u root -p
 
-# Run the schema file
+# Run the schema file (creates database and seed data)
 source database/schema.sql
 
-# Run the security features migration
+# Run the security features migration (adds security tables)
 source database/migration-security-features.sql
+
+# Exit MySQL
+exit
 ```
 
 ### 3. Backend Setup
 ```bash
+# Navigate to backend folder
 cd backend
 
 # Install dependencies
 npm install
 
-# Configure environment
+# Create environment file
+# On Windows:
+copy .env.example .env
+# On Mac/Linux:
 cp .env.example .env
-# Edit .env with your database credentials
 
-# Start development server
-npm run dev
+# Edit .env file with your MySQL credentials:
+# DB_HOST=localhost
+# DB_PORT=3306
+# DB_USER=root
+# DB_PASSWORD=your_mysql_password
+# DB_NAME=visitor_parcel_management
 ```
 
 ### 4. Frontend Setup
 ```bash
+# Navigate to frontend folder
 cd frontend
 
 # Install dependencies
 npm install
 
-# Start development server
-ng serve
+# If Angular CLI is not installed globally:
+npm install -g @angular/cli
 ```
 
 ## 🏃 Running the Application
 
 ### Development Mode
 
-**Backend:**
+**Terminal 1 - Start Backend:**
 ```bash
 cd backend
 npm run dev
-# Server runs on http://localhost:3000
 ```
+✅ Server runs on **http://localhost:3001**
 
-**Frontend:**
+**Terminal 2 - Start Frontend:**
 ```bash
 cd frontend
 ng serve
-# App runs on http://localhost:4200
 ```
+✅ App runs on **http://localhost:4200**
+
+### Quick Start (Both Servers)
+```bash
+# Terminal 1 - Backend
+cd backend && npm run dev
+
+# Terminal 2 - Frontend (open new terminal)
+cd frontend && ng serve
+```
+
+### Access the Application
+1. Open your browser and go to **http://localhost:4200**
+2. Login with test credentials (see below)
+3. On first login, you'll be prompted to set a new password and security PIN
 
 ### Production Build
 
