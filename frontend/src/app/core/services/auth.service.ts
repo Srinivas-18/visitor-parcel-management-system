@@ -355,15 +355,21 @@ export class AuthService {
 
   // First-time password setup with PIN
   setupPassword(data: SetupPasswordRequest): Observable<void> {
-    return this.http.post<ApiResponse<null>>(`${environment.apiUrl}/auth/setup-password`, data, {
+    return this.http.post<ApiResponse<{ user: User }>>(`${environment.apiUrl}/auth/setup-password`, data, {
       headers: this.getAuthHeaders()
     }).pipe(
       map(response => {
         if (!response.success) {
           throw new Error(response.message || 'Failed to setup password');
         }
-        // Update user in storage to reflect password has been set (both camelCase and snake_case)
-        if (this.currentUser) {
+        // Use the updated user from backend response if available
+        if (response.data?.user) {
+          const updatedUser = response.data.user;
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+          this.currentUserSubject.next(updatedUser);
+          console.log('User updated from backend after password setup:', updatedUser);
+        } else if (this.currentUser) {
+          // Fallback: Update user in storage to reflect password has been set
           const updatedUser = { 
             ...this.currentUser, 
             mustChangePassword: false,
@@ -373,7 +379,6 @@ export class AuthService {
           };
           localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
           this.currentUserSubject.next(updatedUser);
-          console.log('User updated after password setup:', updatedUser);
         }
       })
     );

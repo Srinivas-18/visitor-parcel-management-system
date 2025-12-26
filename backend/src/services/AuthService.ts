@@ -13,9 +13,10 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2';
 // Token expiry: 7 days (good balance between security and convenience)
 const TOKEN_EXPIRY = '7d';
 
-// Account lockout settings
+// Account lockout settings (DISABLED FOR TESTING)
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 15;
+const ACCOUNT_LOCKOUT_ENABLED = false; // Set to true in production
 
 export class AuthService {
   // Generate JWT token (legacy - for backwards compatibility)
@@ -44,8 +45,10 @@ export class AuthService {
     }
   }
 
-  // Check if account is locked
+  // Check if account is locked (disabled for testing)
   private static async isAccountLocked(userId: number): Promise<boolean> {
+    if (!ACCOUNT_LOCKOUT_ENABLED) return false; // Disabled for testing
+    
     const [rows] = await pool.execute<RowDataPacket[]>(
       'SELECT locked_until FROM users WHERE id = ?',
       [userId]
@@ -59,8 +62,10 @@ export class AuthService {
     return new Date(lockedUntil) > new Date();
   }
 
-  // Increment failed login attempts
+  // Increment failed login attempts (disabled for testing)
   private static async incrementFailedAttempts(userId: number): Promise<void> {
+    if (!ACCOUNT_LOCKOUT_ENABLED) return; // Disabled for testing
+    
     const [result] = await pool.execute<ResultSetHeader>(
       `UPDATE users SET failed_login_attempts = failed_login_attempts + 1,
        locked_until = CASE 

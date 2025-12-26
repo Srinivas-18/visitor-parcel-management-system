@@ -14,7 +14,7 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     security_pin VARCHAR(255) DEFAULT NULL,
     password_changed_count INT DEFAULT 0,
-    must_change_password BOOLEAN DEFAULT TRUE,
+    must_change_password BOOLEAN DEFAULT FALSE,  -- Set to TRUE in production
     role ENUM('RESIDENT', 'SECURITY', 'ADMIN') NOT NULL,
     contact_info VARCHAR(100),
     is_active BOOLEAN DEFAULT TRUE,

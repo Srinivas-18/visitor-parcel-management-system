@@ -428,7 +428,12 @@ export class AuthController {
       }
 
       await AuthService.setupPassword(req.user.id, { oldPassword, newPassword, confirmPassword, securityPin }, req);
-      res.json(successResponse(null, 'Password setup completed successfully'));
+      
+      // Fetch updated user data to return to frontend
+      const updatedUser = await UserModel.findById(req.user.id);
+      const { password: _, security_pin: __, two_factor_secret: ___, ...userWithoutSecrets } = updatedUser || {};
+      
+      res.json(successResponse({ user: userWithoutSecrets }, 'Password setup completed successfully'));
     } catch (error) {
       next(error);
     }
