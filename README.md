@@ -43,7 +43,7 @@ A comprehensive, production-ready management system for gated communities built 
 - **Security PIN**: 6-digit PIN for password recovery verification
 - **Audit Logging**: Comprehensive logging of all security-sensitive actions
 - **Account Lockout**: Automatic lockout after multiple failed login attempts
-- **First-Time Password Setup**: Forced password change on first login
+- <!-- First-Time Password Setup: Forced password change on first login (DISABLED) -->
 
 ### Technical Highlights
 - Clean architecture with separation of concerns
@@ -474,11 +474,18 @@ visitor-parcel-management/
 | Admin | admin@vpm.com | password123 |
 | Security | guard1@vpm.com | password123 |
 | Security | guard2@vpm.com | password123 |
+| Resident | srinivas@vpm.com | password123 |
 | Resident | karthik@vpm.com | password123 |
 | Resident | pradha@vpm.com | password123 |
 | Resident | roshini@vpm.com | password123 |
 
 > **Note**: On first login, users are required to set up a new password and a 6-digit security PIN.
+>
+> **Update**: First-time password setup is no longer required. You can log in directly with the credentials above.
+
+## ℹ️ Other Notes
+
+- The favicon.ico file is optional. If you remove it, you may see a 404 error in the browser console, but it will not affect application functionality.
 
 ## 📝 License
 

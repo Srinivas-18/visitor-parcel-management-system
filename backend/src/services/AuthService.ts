@@ -160,12 +160,12 @@ export class AuthService {
 
     return {
       success: true,
-      message: user.must_change_password ? 'Please change your password' : 'Login successful',
+      message: 'Login successful',
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       expiresIn: tokens.expiresIn,
       user: userWithoutSecrets,
-      mustChangePassword: user.must_change_password,
+      mustChangePassword: false,
     };
   }
 

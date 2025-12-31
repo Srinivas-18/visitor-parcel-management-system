@@ -89,7 +89,7 @@ export class UserModel {
     const hashedPassword = await bcrypt.hash(userData.password, SALT_ROUNDS);
 
     const result = await db.execute(
-      `INSERT INTO users (name, email, password, role, contact_info, must_change_password, password_changed_count) VALUES (?, ?, ?, ?, ?, TRUE, 0)`,
+      `INSERT INTO users (name, email, password, role, contact_info, must_change_password, password_changed_count) VALUES (?, ?, ?, ?, ?, FALSE, 0)`,
       [
         userData.name,
         userData.email,

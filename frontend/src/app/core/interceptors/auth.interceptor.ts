@@ -34,6 +34,11 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
+          // Skip token refresh for auth endpoints (login, register, etc.)
+          if (request.url.includes('/auth/login') || request.url.includes('/auth/register')) {
+            return throwError(() => error);
+          }
+          
           // Check if this is the refresh endpoint itself
           if (request.url.includes('/auth/refresh')) {
             this.authService.logout();

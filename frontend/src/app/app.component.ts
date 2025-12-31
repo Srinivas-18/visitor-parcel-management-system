@@ -90,29 +90,15 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   openChangePasswordDialog(): void {
-    // Check if user needs to setup password first (handle both camelCase and snake_case)
-    if (this.currentUser?.mustChangePassword || this.currentUser?.must_change_password) {
-      const dialogRef = this.dialog.open(PasswordSetupDialogComponent, {
-        width: '500px',
-        disableClose: true
-      });
-
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          this.notification.success('Password setup completed successfully!');
-        }
-      });
-    } else {
-      const dialogRef = this.dialog.open(ChangePasswordDialogComponent, {
-        width: '500px'
-      });
-
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          this.notification.success('Password changed successfully!');
-        }
-      });
-    }
+    // Password setup on first login is now disabled
+    const dialogRef = this.dialog.open(ChangePasswordDialogComponent, {
+      width: '500px'
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.notification.success('Password changed successfully!');
+      }
+    });
   }
 
   open2FASettingsDialog(): void {

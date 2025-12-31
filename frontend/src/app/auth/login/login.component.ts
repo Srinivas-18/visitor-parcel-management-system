@@ -67,7 +67,7 @@ export class LoginComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        const errorMessage = error.error?.message || error.message || 'Login failed. Please check your credentials.';
+        const errorMessage = error.error?.message || 'Login failed. Please enter correct Email/Password.';
         
         // Check for specific error types
         if (errorMessage.includes('locked')) {
@@ -101,13 +101,8 @@ export class LoginComponent implements OnInit {
   private checkPasswordSetup(): void {
     const user = this.authService.currentUser;
     if (!user) return;
-
-    // Check if user needs to set up password (handle both camelCase and snake_case)
-    if (user.mustChangePassword || user.must_change_password) {
-      this.showPasswordSetupDialog();
-    } else {
-      this.redirectBasedOnRole();
-    }
+    // Password setup on first login is now disabled
+    this.redirectBasedOnRole();
   }
 
   private showPasswordSetupDialog(): void {
